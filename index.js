@@ -48,6 +48,17 @@ async function run() {
       const result = await bookingCollection.insertOne(booking);
       res.json(result)
      });
+      app.put('/bookings/:id', async (req, res) => {
+      const { id } = req.params;
+      const { patientName, date, time, reason } = req.body;
+      const result = await bookingCollection.updateOne(
+        { _id: new ObjectId(id) },
+        {
+          $set: { patientName, date, time, reason }
+        }
+      );
+      res.json(result)
+    });
      app.delete('/bookings/:bookingId', async (req, res) => {
       const {bookingId} = req.params;
       const result = await bookingCollection.deleteOne({ _id: new ObjectId(bookingId) });
