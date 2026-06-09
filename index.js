@@ -9,6 +9,7 @@ app.use(cors())
 app.use(express.json())
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { createRemoteJWKSet, jwtVerify } = require('jose-cjs')
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -19,7 +20,7 @@ const client = new MongoClient(uri, {
   }
 });
 // midleware
-const verifyJWT = (req, res, next) => {
+const verifyJWT = async (req, res, next) => {
   const authorization = req.headers.authorization;
   if (!authorization) {
     return res.status(401).send({ error: true, message: 'unauthorized access' });
@@ -28,9 +29,17 @@ const verifyJWT = (req, res, next) => {
   if (!token) {
     return res.status(401).send({ error: true, message: 'unauthorized access' });
   }
-
-  next();
+  
+  try {
+    const {payload} = await jwtVerify(token, JWKS);
+    console.log('payload:', payload);
+    next();
+  } catch (error) {
+    return res.status(401).send({ error: true, message: 'unauthorized access' });
+  }
 };
+
+const JWKS = createRemoteJWKSet(new URL('http://localhost:3000/api/auth/jwks'));
 
 
 async function run() {
