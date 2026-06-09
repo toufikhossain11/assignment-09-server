@@ -18,6 +18,20 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
+// midleware
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res.status(401).send({ error: true, message: 'unauthorized access' });
+  }
+  const token = authorization.split(' ')[1];
+  if (!token) {
+    return res.status(401).send({ error: true, message: 'unauthorized access' });
+  }
+
+  next();
+};
+
 
 async function run() {
   try {
@@ -33,7 +47,8 @@ async function run() {
       const result = await db.find().toArray();
       res.send(result)
      });
-     app.get('/allAppointments/:id', async (req, res) => {
+     app.get('/allAppointments/:id', verifyJWT, async (req, res) => {
+      
       const {id} = req.params
       const result = await db.findOne({ _id: new ObjectId(id) });
       res.json(result)
