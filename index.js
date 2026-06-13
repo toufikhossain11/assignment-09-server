@@ -29,9 +29,9 @@ const verifyJWT = async (req, res, next) => {
   if (!token) {
     return res.status(401).send({ error: true, message: 'unauthorized access' });
   }
-  
+
   try {
-    const {payload} = await jwtVerify(token, JWKS);
+    const { payload } = await jwtVerify(token, JWKS);
     console.log('payload:', payload);
     next();
   } catch (error) {
@@ -45,30 +45,30 @@ const JWKS = createRemoteJWKSet(new URL('http://localhost:3000/api/auth/jwks'));
 async function run() {
   try {
     await client.connect();
-    const db=client.db('docappoint').collection('datas');
-    const bookingCollection=client.db('docappoint').collection('bookings');
+    const db = client.db('docappoint').collection('datas');
+    const bookingCollection = client.db('docappoint').collection('bookings');
 
-     app.get('/datas', async (req, res) => {
+    app.get('/datas', async (req, res) => {
       const result = await db.find().sort({ rating: -1 }).limit(3).toArray();
       res.send(result)
-     }),
-     app.get('/allAppointments/:id', verifyJWT, async (req, res) => {
-      
-      const {id} = req.params
-      const result = await db.findOne({ _id: new ObjectId(id) });
-      res.json(result)
-     });
-     app.get('/bookings', async (req, res) => {
+    }),
+      app.get('/allAppointments/:id', verifyJWT, async (req, res) => {
+
+        const { id } = req.params
+        const result = await db.findOne({ _id: new ObjectId(id) });
+        res.json(result)
+      });
+    app.get('/bookings', async (req, res) => {
       const result = await bookingCollection.find().toArray();
       res.json(result)
-     });
-     app.post('/bookings', async (req, res) => {
+    });
+    app.post('/bookings', async (req, res) => {
       const booking = req.body;
       console.log(booking)
       const result = await bookingCollection.insertOne(booking);
       res.json(result)
-     });
-      app.put('/bookings/:id', async (req, res) => {
+    });
+    app.put('/bookings/:id', async (req, res) => {
       const { id } = req.params;
       const { patientName, date, time, reason } = req.body;
       const result = await bookingCollection.updateOne(
@@ -79,19 +79,20 @@ async function run() {
       );
       res.json(result)
     });
-     app.delete('/bookings/:bookingId', async (req, res) => {
-      const {bookingId} = req.params;
+    app.delete('/bookings/:bookingId', async (req, res) => {
+      const { bookingId } = req.params;
       const result = await bookingCollection.deleteOne({ _id: new ObjectId(bookingId) });
       res.json(result)
-     });
-     app.get('/allAppointments', async (req, res) => {
-  const { search } = req.query;
-  
-
-  
-  const result = await db.find(query).toArray();
-  res.send(result);
-});
+    });
+    app.get('/allAppointments', async (req, res) => {
+      const { search } = req.query;
+      let query = {};
+      if (search) {
+        query = { name: { $regex: search, $options: 'i' } };
+      }
+      const result = await db.find(query).toArray();
+      res.send(result);
+    });
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
@@ -101,7 +102,8 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-res.send('Hello World!') })
+  res.send('Hello World!')
+})
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
