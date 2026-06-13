@@ -39,12 +39,10 @@ const verifyJWT = async (req, res, next) => {
   }
 };
 
-const JWKS = createRemoteJWKSet(new URL('http://localhost:3000/api/auth/jwks'));
-
-
+const JWKS = createRemoteJWKSet(new URL(`${process.env.CLIENT_URL}/api/auth/jwks`));
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     const db = client.db('docappoint').collection('datas');
     const bookingCollection = client.db('docappoint').collection('bookings');
 
@@ -94,12 +92,10 @@ async function run() {
       res.send(result);
     });
   } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
+    
   }
 }
 run().catch(console.dir);
-
 
 app.get('/', (req, res) => {
   res.send('Hello World!')
