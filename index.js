@@ -52,10 +52,6 @@ async function run() {
       const result = await db.find().sort({ rating: -1 }).limit(3).toArray();
       res.send(result)
      }),
-     app.get('/allAppointments', async (req, res) => {
-      const result = await db.find().toArray();
-      res.send(result)
-     });
      app.get('/allAppointments/:id', verifyJWT, async (req, res) => {
       
       const {id} = req.params
@@ -87,7 +83,15 @@ async function run() {
       const {bookingId} = req.params;
       const result = await bookingCollection.deleteOne({ _id: new ObjectId(bookingId) });
       res.json(result)
-     })
+     });
+     app.get('/allAppointments', async (req, res) => {
+  const { search } = req.query;
+  
+
+  
+  const result = await db.find(query).toArray();
+  res.send(result);
+});
   } finally {
     // Ensures that the client will close when you finish/error
     // await client.close();
